@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+<link rel="stylesheet" href="blackorwhite.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-color/2.1.2/jquery.color.min.js"></script>
+<!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script> -->
+<script src="jquery.helpers.js"></script>
+<script src="brain-0.6.3.js"></script>
+<script src="blackorwhite.js"></script>
+<script src="starch.js"></script>
+<!-- <script src="url.js"></script>
+<script src="file.js"></script>
+<script src="get.js"></script> -->
+<title>brain.js demo: Train a neural network to recognize color contrast</title>
+
+<script>
+var log = console.log.bind(console)
+var body = document.body, i
+Object.defineProperty(Array.prototype, 'chunk', {
+  value: function(chunkSize) {
+    var R = []
+    for (var i = 0; i < this.length; i += chunkSize)
+      R.push(this.slice(i, i + chunkSize))
+    return R
+  }
+})
+
+$(function() {
+  $.post("img.csv", function(d) {
+    d = d.split("\n")
+    d.each(function(v, k) {
+      if (k > 71) {return false}
+      i = $("<img>", {src: "http://www.matthewmorrone.com/space/"+v})[0]
+      $("#gallery").append(i)
+    })
+    // $("img").eq(0).addClass("current")
+    $("img").eq(Math.random(0, $("img").length)).click()
+  })
+
+  // $("#canvas1, #canvas2").css("position", "absolute")
+
+
+  // $("#canvas1").top($("#black-swatch").offset().top)
+  // $("#canvas1").left($("#black-swatch").offset().left)
+  // $("#canvas2").top($("#white-swatch").offset().top)
+  // $("#canvas2").left($("#white-swatch").offset().left)
+
+  // $("#white-swatch, #black-swatch").css("position", "absolute")
+
+
+  // $("#black-swatch").top($("#canvas1").offset().top)
+  // $("#black-swatch").left($("#canvas1").offset().left)
+  // $("#white-swatch").top($("#canvas2").offset().top)
+  // $("#white-swatch").left($("#canvas2").offset().left)
+})
+$(document).on("click", "img", function() {
+  $(".swatch").css("background-image", "url("+$(this).attr("src")+")")
+        .css("background-color", "transparent")
+        .css("background-size", "cover")
+        .css("background-position", "center")
+
+
+  var img = new Image()
+  img.src = $(this).attr("src")
+  img.width = 220
+  img.height = 220
+  var canvas1 = document.getElementById('canvas1')
+  var canvas2 = document.getElementById('canvas2')
+  var ctx1 = canvas1.getContext('2d')
+  var ctx2 = canvas2.getContext('2d')
+  img.onload = function() {
+    ctx1.drawImage(img, 0, 0, img.width, img.height)
+    ctx2.drawImage(img, 0, 0, img.width, img.height)
+  }
+  var color = document.getElementById('color')
+  function pick(event) {
+    var ctx = this.getContext('2d')
+    var x = event.layerX
+    var y = event.layerY
+    var pixel = ctx.getImageData(x, y, 1, 1)
+    var data = pixel.data
+    var rgba = 'rgba(' + data[0] + ',' + data[1] + ',' + data[2] + ',' + data[3] + ')'
+    // log(event, ctx, x, y, pixel, data, rgba)
+    log(Array.from(ctx.getImageData(0, 0, this.width, this.height)))
+
+
+
+
+
+  }
+  canvas1.addEventListener('click'/*'mousemove'*/, pick)
+  canvas1.addEventListener('mouseenter', function() {$(this).addClass("invert")})
+  canvas1.addEventListener('mouseleave', function() {$(this).removeClass("invert")})
+  canvas2.addEventListener('click'/*'mousemove'*/, pick)
+  canvas2.addEventListener('mouseenter', function() {$(this).addClass("invert")})
+  canvas2.addEventListener('mouseleave', function() {$(this).removeClass("invert")})
+})
+
+</script>
+</head>
+<body>
+<div id="desc">brain.js demo - train a neural network to recognize color contrast</div>
+<div id="container">
+
+
+  <div class="section" id="training-box">
+  <div class="section-header"> Which one can you read more easily? </div>
+    <div class="swatch-box">
+    <div id="black-swatch" class="swatch" onclick="//trainer.pickSwatch('black')">
+
+      <table>
+      <tr><td><span class="fa fa-bell"></span></td><td><span class="fa fa-bluetooth"></span></td><td><span class="fa fa-heart"></span></td></tr>
+      <tr><td><span class="fa fa-anchor"></span></td><td><span class="fa fa-ra"></span></td><td><span class="fa fa-heart"></span></td></tr>
+      <tr><td><span class="fa fa-delicious"></span></td><td><span class="fa fa-chrome"></span></td><td><span class="fa fa-random"></span></td></tr>
+      </table>
+    </div>
+    </div>
+    <canvas id="canvas1" height=220 width=220></canvas>
+
+    <div class="swatch-box">
+    <div id="white-swatch" class="swatch" onclick="//trainer.pickSwatch('white')">
+    <table>
+      <tr><td><span class="fa fa-bell"></span></td><td><span class="fa fa-bluetooth"></span></td><td><span class="fa fa-heart"></span></td></tr>
+      <tr><td><span class="fa fa-anchor"></span></td><td><span class="fa fa-ra"></span></td><td><span class="fa fa-heart"></span></td></tr>
+      <tr><td><span class="fa fa-delicious"></span></td><td><span class="fa fa-chrome"></span></td><td><span class="fa fa-random"></span></td></tr>
+    </table>
+    </div>
+
+    </div>
+  <canvas id="canvas2" height=220 width=220></canvas>
+
+
+  <div id="training-buttons"> <span class="pass-button button" onclick="trainer.changeColor()" title="skip">&rarr;</span> </div>
+  <div id="test-box">
+    <div id="test-button" onclick="trainer.trainNetwork()" class="button">train neural network</div>
+    <div id="subtitle"> You can train the network at any point, but the more color selections you give it, the better. </div>
+  </div>
+  </div>
+  <div id="progress-box">
+  <div id="training-message"> training network... </div>
+  <div id="progress-bar">
+    <div id="progress-completed"> </div>
+  </div>
+  </div>
+  <div class="section" id="testing-box">
+  <div id="swatches">
+    <div id="nn-swatch-box" class="swatch-box">
+    <div id="nn-swatch" class="swatch" onclick="tester.viewCode('nn')" title="view neural network code">
+      <div class="swatch-text">your neural network</div>
+    </div>
+    <div class="view-code" onclick="tester.viewCode('nn')">code
+      <div class="view-code-arrow">&#x25B6</div>
+    </div>
+    </div>
+    <div id="wcag-swatch-box" class="swatch-box">
+    <div id="wcag-swatch" class="swatch" onclick="tester.viewCode('wcag')" title="view luminosity code">
+      <div class="swatch-text">luminosity algorithm</div>
+    </div>
+    <div class="view-code" onclick="tester.viewCode('wcag')">code
+      <div class="view-code-arrow">&#x25B6</div>
+    </div>
+    </div>
+    <div id="yiq-swatch-box" class="swatch-box">
+    <div id="yiq-swatch" class="swatch" onclick="tester.viewCode('yiq')" title="view yiq code">
+      <div class="swatch-text">YIQ formula</div>
+    </div>
+    <div class="view-code" onclick="tester.viewCode('yiq')">code
+      <div class="view-code-arrow">&#x25B6</div>
+    </div>
+    </div>
+  </div>
+  <div id="training-buttons"> <span class="pass-button button" onclick="tester.testRandom()" title="next color">&rarr</span> </div>
+  </div>
+  <div id="code-box"> <pre id="code"></pre> </div>
+  <div id="gallery"></div>
+</div>
+</body>
+
+</html>
