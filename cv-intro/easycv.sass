@@ -1,0 +1,214 @@
+@import compass/reset
+@import compass/css3
+@import compass/utilities
+@import font-awesome
+
+
+// Colors
+$red: #ec5757
+$orange: #ff7c4f
+$yellow: #ffd366
+$green: #43b364
+$blue: #2da5c4
+$purple: #a083c8
+
+$offWhite: #f7f7f7
+$lightGray: #ccc
+$gray: #666
+$darkGray: #444
+
+$color: $darkGray
+$tintColor: $green
+$bgColor: $offWhite
+$borderColor: lighten($lightGray, 10%)
+
+// Fonts
+// We're using Open Sans hosted by Google Fonts with the following weights:
+// * 300 Light
+// * 400 Normal
+// * 600 Semi-bold
+// * 700 Bold
+// * 800 Extra-bold
+
+// Layout
+$gutter: 20px
+$radius: 2px
+
+
+*
+  +box-sizing(border-box)
+
+body
+  background: $bgColor
+  color: $color
+
+body,
+button,
+input
+  font-family: "Open Sans", sans-serif
+  font-weight: 300
+  font-size: 16px
+
+a
+  color: $green
+  text-decoration: none
+
+
+/* Buttons */
+
+.btn
+  padding: $gutter/4 $gutter
+  border: none
+  color: $tintColor
+  background-color: white
+  text-align: left
+  &:hover
+    cursor: pointer
+    background: $offWhite
+  &:active
+    background: darken($offWhite, 10%)
+
+.full
+  width: 100%
+
+.btn-icon
+  padding: 0
+  background: transparent
+  border: none
+  &:hover
+    cursor: pointer
+
+.btn-square
+  width: 14px
+  height: 14px
+  background: white
+  border: 1px solid $lightGray
+  +border-radius($radius)
+  &.active
+    background: $green
+    border-color: $green
+
+/* Slider */
+
+.horizontal-range
+  -webkit-appearance: none
+  background-color: $green
+  height: 2px
+  width: 100%
+  &:hover
+    cursor: pointer
+
+::-webkit-slider-thumb
+  -webkit-appearance: none
+  width: 20px
+  height: 20px
+  border: 1px solid darken($lightGray, 5%)
+  background-color: white
+  +border-radius(50%)
+
+
+/* Toolbar */
+
+.toolbar
+  position: absolute
+  width: 250px
+  padding: $gutter 0
+  overflow-y: auto
+  background: white
+  border-right: 1px solid $borderColor
+
+.panel
+  margin-bottom: $gutter
+  padding-bottom: $gutter/2
+  border-bottom: 1px solid $borderColor
+
+.panel-heading
+  padding: 0 $gutter
+  font-size: 14px
+  font-weight: 500
+  text-transform: uppercase
+
+.control-heading
+  position: relative
+  display: block
+  padding: $gutter/2 $gutter
+  &:hover
+    cursor: pointer
+    background: $offWhite
+  &:active
+    background: darken($offWhite, 10%)
+
+  .btn-icon
+    color: $lightGray
+
+  .toggle-show,
+  .toggle-hide
+    position: absolute
+    right: $gutter
+  .toggle-hide
+    display: none
+
+.control-row
+  position: relative
+  display: block
+  padding: $gutter/2 $gutter
+  &:hover
+    cursor: pointer
+    background: $offWhite
+  &:active
+    background: darken($offWhite, 10%)
+
+  .toggle-on
+    position: absolute
+    right: $gutter
+    &:hover
+      cursor: pointer
+
+.control-content
+  display: none
+  border-bottom: 1px solid $borderColor
+  padding: $gutter/2 0 $gutter
+
+.control
+  &.open
+    margin-bottom: $gutter/4
+    .control-heading
+      .toggle-show
+        display: none
+      .toggle-hide
+        display: block
+    .control-content
+      display: block
+
+
+/* Editor */
+
+.editor
+  position: absolute
+  left: 250px
+  padding: $gutter * 2
+  overflow: auto
+
+
+/* Blob detection demo */
+.row
+  +pie-clearfix
+
+.block
+  display: block
+  float: left
+  width: 100px
+  height: 100px
+  margin: 0
+  padding: 0
+  border: none
+  border-bottom: 1px solid $lightGray
+  border-right: 1px solid $lightGray
+  font-size: 48px
+  text-align: center
+  &.on
+    background: $gray
+
+
+
+

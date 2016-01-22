@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width">
+
+    <title>EasyCV</title>
+
+    <script src="modernizr.js"></script>
+
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700,800" rel="stylesheet">
+    <link rel="stylesheet" href="easycv.css">
+
+  </head>
+  <body>
+
+   <section id="toolbar" class="toolbar">
+      <section id="filters" class="filters panel">
+        <h2 class="panel-heading">Filters</h2>
+
+       <div class="control">
+          <a href="#" class="control-heading">
+            <button class="fa fa-angle-down btn-icon toggle-show"></button>
+            <button class="fa fa-angle-up btn-icon toggle-hide"></button>
+            <h3 class="heading-label">Brightness</h3>
+          </a>
+          <div class="control-content">
+            <input type="range" class="horizontal-range brightness-slider" min="-100" max="100" step="1" value="0" />
+          </div>
+        </div>
+
+       <div class="control">
+          <a href="#" class="control-heading">
+            <button class="fa fa-angle-down btn-icon toggle-show"></button>
+            <button class="fa fa-angle-up btn-icon toggle-hide"></button>
+            <h3 class="heading-label">Contrast</h3>
+          </a>
+          <div class="control-content">
+            <input type="range" class="horizontal-range contrast-slider" min="-100" max="100" step="1" value="0" />
+          </div>
+        </div>
+
+        <div class="control">
+          <a href="#" class="control-heading">
+            <button class="fa fa-angle-down btn-icon toggle-show"></button>
+            <button class="fa fa-angle-up btn-icon toggle-hide"></button>
+            <h3 class="heading-label">Saturation</h3>
+          </a>
+          <div class="control-content">
+            <input type="range" class="horizontal-range saturation-slider" min="-100" max="100" step="1" value="0" />
+          </div>
+        </div>
+
+        <div class="control">
+          <a href="#" class="control-heading">
+            <button class="fa fa-angle-down btn-icon toggle-show"></button>
+            <button class="fa fa-angle-up btn-icon toggle-hide"></button>
+            <h3 class="heading-label">Blur</h3>
+          </a>
+          <div class="control-content">
+            <input type="range" class="horizontal-range blur-slider" min="0" max="25" step="1" value="0" />
+          </div>
+        </div>
+
+        <div class="control">
+          <a href="#" class="control-heading">
+            <button class="fa fa-angle-down btn-icon toggle-show"></button>
+            <button class="fa fa-angle-up btn-icon toggle-hide"></button>
+            <h3 class="heading-label">Sharpen</h3>
+          </a>
+          <div class="control-content">
+            <input type="range" class="horizontal-range sharpen-slider" min="0" max="25" step="1" value="0" />
+          </div>
+        </div>
+
+        <div class="control">
+            <a href="#" class="control-heading">
+            <button class="fa fa-angle-down btn-icon toggle-show"></button>
+            <button class="fa fa-angle-up btn-icon toggle-hide"></button>
+            <h3 class="heading-label">Threshold</h3>
+          </a>
+          <div class="control-content">
+            <input type="range" class="horizontal-range threshold-slider" min="0" max="255" step="1" value="0" />
+          </div>
+        </div>
+
+        <div class="control">
+          <a href="#" class="control-row">
+            <button class="btn-square toggle-on invert-checkbox" data-checked="false"></button>
+            <h3 class="heading-label">Invert</h3>
+          </a>
+        </div>
+        <div class="control">
+          <a href="#" class="control-row">
+            <button class="btn-square toggle-on edges-checkbox" data-checked="false"></button>
+            <h3 class="heading-label">Show edges</h3>
+          </a>
+        </div>
+      </section>
+
+      <section id="commands" class="commands panel">
+        <h2 class="panel-heading">Commands</h2>
+        <button class="btn full reset-button">Reset</button>
+      </section>
+
+    </section>
+
+    <section id="editor" class="editor">
+      <canvas id="canvas" />
+    </section>
+
+    <script src="jquery.js"></script>
+    <script src="underscore.js"></script>
+
+    <script src="pic.js"></script>
+    <script src="filters.js"></script>
+    <script src="easycv.js"></script>
+  </body>
+</html>
