@@ -31,6 +31,7 @@
 
   $.each({
     background: "background",
+    backgroundColor: "background-color",
     border: "border",
     bottom: "bottom",
     color: "color",

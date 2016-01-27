@@ -4,17 +4,23 @@
 <head>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 
-<link rel="stylesheet" href="blackorwhite.css">
+<link rel="stylesheet" href="css/blackorwhite.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-color/2.1.2/jquery.color.min.js"></script>
-<!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script> -->
-<script src="jquery.helpers.js"></script>
-<script src="brain-0.6.3.js"></script>
-<script src="blackorwhite.js"></script>
-<script src="starch.js"></script>
-<!-- <script src="url.js"></script>
-<script src="file.js"></script>
-<script src="get.js"></script> -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<script src="js/jquery.helpers.js"></script>
+<script src="js/brain.js"></script>
+<script src="js/blackorwhite.js"></script>
+<script src="js/starch.js"></script>
+<script src="js/file.js"></script>
+
+
+
+<script src="color/average.js"></script>
+<script src="color/dominant.js"></script>
+
+
+
 <title>brain.js demo: Train a neural network to recognize color contrast</title>
 
 <script>
@@ -34,70 +40,38 @@ $(function() {
     d = d.split("\n")
     d.each(function(v, k) {
       if (k > 71) {return false}
-      i = $("<img>", {src: "http://www.matthewmorrone.com/space/"+v})[0]
+      i = $("<img>", {crossOrigin: "anonymous", src: "http://www.matthewmorrone.com/space/"+v})[0]
       $("#gallery").append(i)
     })
-    // $("img").eq(0).addClass("current")
     $("img").eq(Math.random(0, $("img").length)).click()
   })
-
-  // $("#canvas1, #canvas2").css("position", "absolute")
-
-
-  // $("#canvas1").top($("#black-swatch").offset().top)
-  // $("#canvas1").left($("#black-swatch").offset().left)
-  // $("#canvas2").top($("#white-swatch").offset().top)
-  // $("#canvas2").left($("#white-swatch").offset().left)
-
-  // $("#white-swatch, #black-swatch").css("position", "absolute")
-
-
-  // $("#black-swatch").top($("#canvas1").offset().top)
-  // $("#black-swatch").left($("#canvas1").offset().left)
-  // $("#white-swatch").top($("#canvas2").offset().top)
-  // $("#white-swatch").left($("#canvas2").offset().left)
 })
 $(document).on("click", "img", function() {
   $(".swatch").css("background-image", "url("+$(this).attr("src")+")")
-        .css("background-color", "transparent")
-        .css("background-size", "cover")
-        .css("background-position", "center")
-
+        	  .css("background-color", "transparent")
+        	  .css("background-size", "cover")
+        	  .css("background-position", "center")
 
   var img = new Image()
+  img.crossOrigin = "anonymous"
   img.src = $(this).attr("src")
   img.width = 220
   img.height = 220
-  var canvas1 = document.getElementById('canvas1')
-  var canvas2 = document.getElementById('canvas2')
-  var ctx1 = canvas1.getContext('2d')
-  var ctx2 = canvas2.getContext('2d')
-  img.onload = function() {
-    ctx1.drawImage(img, 0, 0, img.width, img.height)
-    ctx2.drawImage(img, 0, 0, img.width, img.height)
+  var canvas = document.getElementById('canvas')
+  var ctx = canvas.getContext('2d')
+  img.onload = function(e) {
+    ctx.drawImage(img, 0, 0, img.width, img.height)
+
+    var domi = dominant(canvas)
+    var aver = average(canvas)
+    log(domi, aver)
+    $("body").backgroundColor(aver)
   }
-  var color = document.getElementById('color')
-  function pick(event) {
-    var ctx = this.getContext('2d')
-    var x = event.layerX
-    var y = event.layerY
-    var pixel = ctx.getImageData(x, y, 1, 1)
-    var data = pixel.data
-    var rgba = 'rgba(' + data[0] + ',' + data[1] + ',' + data[2] + ',' + data[3] + ')'
-    // log(event, ctx, x, y, pixel, data, rgba)
-    log(Array.from(ctx.getImageData(0, 0, this.width, this.height)))
 
-
-
-
-
-  }
-  canvas1.addEventListener('click'/*'mousemove'*/, pick)
-  canvas1.addEventListener('mouseenter', function() {$(this).addClass("invert")})
-  canvas1.addEventListener('mouseleave', function() {$(this).removeClass("invert")})
-  canvas2.addEventListener('click'/*'mousemove'*/, pick)
-  canvas2.addEventListener('mouseenter', function() {$(this).addClass("invert")})
-  canvas2.addEventListener('mouseleave', function() {$(this).removeClass("invert")})
+  // canvas1.addEventListener('mouseenter', function() {$(this).addClass("invert")})
+  // canvas1.addEventListener('mouseleave', function() {$(this).removeClass("invert")})
+  // canvas2.addEventListener('mouseenter', function() {$(this).addClass("invert")})
+  // canvas2.addEventListener('mouseleave', function() {$(this).removeClass("invert")})
 })
 
 </script>
@@ -119,7 +93,7 @@ $(document).on("click", "img", function() {
       </table>
     </div>
     </div>
-    <canvas id="canvas1" height=220 width=220></canvas>
+    <canvas id="canvas" height=220 width=220></canvas>
 
     <div class="swatch-box">
     <div id="white-swatch" class="swatch" onclick="//trainer.pickSwatch('white')">
@@ -131,7 +105,7 @@ $(document).on("click", "img", function() {
     </div>
 
     </div>
-  <canvas id="canvas2" height=220 width=220></canvas>
+  <!-- <canvas id="canvas2" height=220 width=220></canvas> -->
 
 
   <div id="training-buttons"> <span class="pass-button button" onclick="trainer.changeColor()" title="skip">&rarr;</span> </div>
