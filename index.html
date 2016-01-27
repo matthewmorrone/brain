@@ -7,17 +7,20 @@
 <link rel="stylesheet" href="css/blackorwhite.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-color/2.1.2/jquery.color.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 <script src="js/jquery.helpers.js"></script>
 <script src="js/brain.js"></script>
 <script src="js/blackorwhite.js"></script>
 <script src="js/starch.js"></script>
+<script src="js/starch.canvas.js"></script>
 <script src="js/file.js"></script>
 
 
 
 <script src="color/average.js"></script>
 <script src="color/dominant.js"></script>
+<script src="color/color-thief.js"></script>
+<script src="color/rgbquant.js"></script>
 
 
 
@@ -37,20 +40,52 @@ Object.defineProperty(Array.prototype, 'chunk', {
 
 $(function() {
   $.post("img.csv", function(d) {
-    d = d.split("\n")
+    d = d.split("\n").shuffle()
     d.each(function(v, k) {
       if (k > 71) {return false}
-      i = $("<img>", {crossOrigin: "anonymous", src: "http://www.matthewmorrone.com/space/"+v})[0]
+      try {
+        i = $("<img>", {crossOrigin: "anonymous", src: "http://www.matthewmorrone.com/space/"+v, class: "thumb"})[0]
+      }
+      catch(e) {
+        log(e, v)
+      }
       $("#gallery").append(i)
     })
-    $("img").eq(Math.random(0, $("img").length)).click()
+    $(".thumb:nth-last-child(-n+"+(72 % Math.floor(($(window).width() / 2) / 70))+")").remove();
+    $(".thumb").eq(Math.random(0, $("img").length)).click()
   })
 })
-$(document).on("click", "img", function() {
+function quant(img) {
+  // options with defaults (not required)
+  var opts = {
+    colors: 256,             // desired palette size
+    method: 2,               // histogram method, 2: min-population threshold within subregions; 1: global top-population
+    boxSize: [64,64],        // subregion dims (if method = 2)
+    boxPxls: 2,              // min-population threshold (if method = 2)
+    initColors: 4096,        // # of top-occurring colors  to start with (if method = 1)
+    minHueCols: 0,           // # of colors per hue group to evaluate regardless of counts, to retain low-count hues
+    dithKern: null,          // dithering kernel name, see available kernels in docs below
+    dithDelta: 0,            // dithering threshhold (0-1) e.g: 0.05 will not dither colors with <= 5% difference
+    dithSerp: false,         // enable serpentine pattern dithering
+    palette: [],             // a predefined palette to start with in r,g,b tuple format: [[r,g,b],[r,g,b]...]
+    reIndex: false,          // affects predefined palettes only. if true, allows compacting of sparsed palette once target palette size is reached. also enables palette sorting.
+    useCache: true,          // enables caching for perf usually, but can reduce perf in some cases, like pre-def palettes
+    cacheFreq: 10,           // min color occurance count needed to qualify for caching
+    colorDist: "euclidean",  // method used to determine color distance, can also be "manhattan"
+  };
+
+  var q = new RgbQuant(opts);
+
+  q.sample(img)
+  var pal = q.palette()
+  var out = q.reduce(img)
+  log(q, pal, out)
+}
+$(document).on("click", ".thumb", function() {
   $(".swatch").css("background-image", "url("+$(this).attr("src")+")")
-        	  .css("background-color", "transparent")
-        	  .css("background-size", "cover")
-        	  .css("background-position", "center")
+              .css("background-color", "transparent")
+              .css("background-size", "cover")
+              .css("background-position", "center")
 
   var img = new Image()
   img.crossOrigin = "anonymous"
@@ -58,15 +93,35 @@ $(document).on("click", "img", function() {
   img.width = 220
   img.height = 220
   var canvas = document.getElementById('canvas')
-  var ctx = canvas.getContext('2d')
+  var ctx = Canvas(canvas)
+
+
+
   img.onload = function(e) {
     ctx.drawImage(img, 0, 0, img.width, img.height)
 
     var domi = dominant(canvas)
     var aver = average(canvas)
-    log(domi, aver)
+    $("#desc").html("<span style='color: {0};'>{0}</span> <span style='color: {1};'>{1}</span>".format(domi, aver))
     $("body").backgroundColor(aver)
+
+    // quant(this)
+
+    var colorThief = new ColorThief()
+    var dom = $.Color(colorThief.getColor(img)).toHexString()
+    var col = colorThief.getPalette(img, 8).map(x => $.Color(x).toHexString())
+    log(dom, col)
+
+    ctx.fillStyle(dom).fillRect(0, 0, img.width, img.height/2)
+        .fillStyle(col[0]).fillRect(0, img.height/2, img.width/4, img.height/4)
+        .fillStyle(col[1]).fillRect(img.width/4, img.height/2, img.width/4, img.height/4)
+        .fillStyle(col[2]).fillRect(img.width/2, img.height/2, img.width/4, img.height/4)
+        .fillStyle(col[3]).fillRect(3*img.width/4, img.height/2, img.width/4, img.height/4)
   }
+
+
+
+
 
   // canvas1.addEventListener('mouseenter', function() {$(this).addClass("invert")})
   // canvas1.addEventListener('mouseleave', function() {$(this).removeClass("invert")})
@@ -108,7 +163,7 @@ $(document).on("click", "img", function() {
   <!-- <canvas id="canvas2" height=220 width=220></canvas> -->
 
 
-  <div id="training-buttons"> <span class="pass-button button" onclick="trainer.changeColor()" title="skip">&rarr;</span> </div>
+  <!-- <div id="training-buttons"> <span class="pass-button button" onclick="trainer.changeColor()" title="skip">&rarr;</span> </div> -->
   <div id="test-box">
     <div id="test-button" onclick="trainer.trainNetwork()" class="button">train neural network</div>
     <div id="subtitle"> You can train the network at any point, but the more color selections you give it, the better. </div>

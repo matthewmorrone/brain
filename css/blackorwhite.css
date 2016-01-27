@@ -1,192 +1,161 @@
 body {
-  font-family: Tahoma, Helvetica, Arial, sans-serif;
+	font-family: Tahoma, Helvetica, Arial, sans-serif;
 }
 html, body {
-  width: 100%;
-  height: 100%;
-  /*overflow: hidden;*/
+	width: 100%;
+	height: 100%;
+	/*overflow: hidden;*/
 }
-::-webkit-scrollbar { 
-  display: none; 
+::-webkit-scrollbar {
+	display: none;
 }
-img {
-  height: 70px;
-  width: 70px;
+.thumb {
+	height: 70px;
+	width: 70px;
 }
 .current {
-  border: 3px solid red;
+	border: 3px solid red;
 }
 .swatch-text {
-  width: 100%;
+	width: 100%;
 }
 .fa {
-  font-size: 200%;
+	font-size: 200%;
 }
 canvas {
-  /*position: absolute;*/
-  border: 1px solid gray;
-  /*z-index: -1;*/
-  /*float: left;*/
-  display: inline;
-  white-space: nowrap;
+	border: 1px solid gray;
+	display: inline;
+	white-space: nowrap;
 }
 .invert {
-  -webkit-filter: invert(100%);
+	-webkit-filter: invert(100%);
 }
 #desc {
-  background-color: #F0F0F0;
+	background-color: #F0F0F0;
 }
-
 .section {
-  text-align: center;
+	text-align: center;
 }
-
 .section-header {
-  margin-bottom: 20px;
-  font-size: 1.2em;
+	margin-bottom: 20px;
+	font-size: 1.2em;
 }
-
 #subtitle {
-  margin-top: 2em;
-  font-size: .95em;
-  color: #555;
-  padding: 0px 80px;
+	margin-top: 2em;
+	font-size: .95em;
+	color: #555;
+	padding: 0px 80px;
 }
-
 #black-swatch {
-  color: black;
+	color: black;
 }
-
 #white-swatch {
-  color: white;
+	color: white;
 }
-
 .swatch:active {
-  -moz-box-shadow: 0 0 2px 3px grey;
-  -webkit-box-shadow: 0 0 2px 3px grey;
-  box-shadow: 0 0 2px 3px grey;
+	-moz-box-shadow: 0 0 2px 3px grey;
+	-webkit-box-shadow: 0 0 2px 3px grey;
+	box-shadow: 0 0 2px 3px grey;
 }
-
 .swatch {
-  width: 220px;
-  height: 220px;
-  cursor: pointer;
+	width: 220px;
+	height: 220px;
+	cursor: pointer;
 }
-
 .swatch table {
-  width: 100%;
-  height: 100%;
+	width: 100%;
+	height: 100%;
 }
-
 #gallery {
-  width: 40%;
-  margin: auto;
+	width: 50%;
+	margin: auto;
 }
-
 .swatch-box {
-  display: inline-block;
-  /*float: left;*/
-  pointer-events: none;
-
+	display: inline-block;
+	/*float: left;*/
+	pointer-events: none;
 }
-
 .view-code {
-  color: #aaa;
-  cursor: pointer;
-  margin-right: 4px;
-  vertical-align: center;
+	color: #aaa;
+	cursor: pointer;
+	margin-right: 4px;
+	vertical-align: center;
 }
-
 .swatch-box.selected .view-code {
-  color: #222;
+	color: #222;
 }
-
 .view-code-arrow {
-  margin-left: .16em;
-  font-size: .8em;
-  display: inline-block;
+	margin-left: .16em;
+	font-size: .8em;
+	display: inline-block;
 }
-
 .swatch-box.selected .view-code-arrow {
-  -moz-transform: rotate(90deg);
-  -webkit-transform: rotate(90deg);
-  -o-transform:rotate(90deg);
+	-moz-transform: rotate(90deg);
+	-webkit-transform: rotate(90deg);
+	-o-transform: rotate(90deg);
 }
-
 #test-box {
-  margin-top: 50px;
+	margin-top: 50px;
 }
-
 .pass-button {
-  color: #333;
-  font-weight: bold;
-  font-size: 1.6em;
-  font-family: "Lucida Grande", Lucida, sans-serif;
+	color: #333;
+	font-weight: bold;
+	font-size: 1.6em;
+	font-family: "Lucida Grande", Lucida, sans-serif;
 }
-
 #training-box .pass-button {
-  margin-left: 310px;
+	margin-left: 310px;
 }
-
 #testing-box .pass-button {
-  margin-left: 350px;
+	margin-left: 350px;
 }
-
 #test-button {
-  background-color: #DDD;
-  box-shadow: #E0E0E0 0 .15em 0.6em;
-  border: 1px solid #CCC;
-  margin-top: 40px;
-  padding: 6px 14px;
+	background-color: #DDD;
+	box-shadow: #E0E0E0 0 .15em 0.6em;
+	border: 1px solid #CCC;
+	margin-top: 40px;
+	padding: 6px 14px;
 }
-
 .button:active {
-  background-color: #BBB !important;
+	background-color: #BBB !important;
 }
-
 .button {
-  border-radius: 4px;
-  cursor: pointer;
-  display: inline-block;
+	border-radius: 4px;
+	cursor: pointer;
+	display: inline-block;
 }
-
 #code-box {
-  margin: 32px auto;
+	margin: 32px auto;
 }
-
 #code-header {
-  margin-bottom: 10px;
-  font-weight: bold;
+	margin-bottom: 10px;
+	font-weight: bold;
 }
-
 #code {
-  text-align: left;
-  font-family: "DejaVu Sans Mono", monospace;
-  font-size: 13px;
-  white-space: pre-wrap;
-  background-color: #F4F4F4;
-  padding: 18px 16px;
-  margin: 0 auto;
-  border: 1px solid #eee;
+	text-align: left;
+	font-family: "DejaVu Sans Mono", monospace;
+	font-size: 13px;
+	white-space: pre-wrap;
+	background-color: #F4F4F4;
+	padding: 18px 16px;
+	margin: 0 auto;
+	border: 1px solid #eee;
 }
-
 #progress-box {
-  width: 600px;
-  text-align: center;
-  margin: 200px auto;
-  font-weight: bold;
-  font-size: 2em;
+	width: 600px;
+	text-align: center;
+	margin: 200px auto;
+	font-weight: bold;
+	font-size: 2em;
 }
-
 #progress-bar {
-  height: 20px;
-  border: 1px solid #ccc;
-  background-color: #f2f2f2;
-  margin-top: 20px;
+	height: 20px;
+	border: 1px solid #ccc;
+	background-color: #f2f2f2;
+	margin-top: 20px;
 }
-
 #progress-completed {
-  background-color: #d0d0d0;
-  width: 0%;
-  height: 100%;
+	background-color: #d0d0d0;
+	width: 0%;
+	height: 100%;
 }
