@@ -169,6 +169,9 @@ Array.prototype.define("flatten", function(ret) {
   return ret
 })
 Array.prototype.define("first", function() {
+  if (arguments.length > 0) {
+    this[0] = arguments[0]
+  }
   return this[0]
 })
 Array.prototype.define("start", function() {
@@ -178,6 +181,9 @@ Array.prototype.define("end", function() {
   return this.length - 1
 })
 Array.prototype.define("last", function() {
+  if (arguments.length > 0) {
+    this[this.length - 1] = arguments[0]
+  }
   return this[this.length - 1]
 })
 Array.prototype.define("each", Array.prototype.forEach)

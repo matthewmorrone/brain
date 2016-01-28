@@ -15,14 +15,22 @@
 <script src="js/starch.canvas.js"></script>
 <script src="js/file.js"></script>
 
-
-
+<script src="color/all.js"></script>
 <script src="color/average.js"></script>
 <script src="color/dominant.js"></script>
-<script src="color/color-thief.js"></script>
+<script src="color/colorthief.js"></script>
 <script src="color/rgbquant.js"></script>
 
+<script src="color/processing.js"></script>
+<script src="color/norms.js"></script>
+<script src="color/hog.js"></script>
 
+<style>
+.choice {
+	border: 3px solid darkred;
+}
+
+</style>
 
 <title>brain.js demo: Train a neural network to recognize color contrast</title>
 
@@ -30,182 +38,237 @@
 var log = console.log.bind(console)
 var body = document.body, i
 Object.defineProperty(Array.prototype, 'chunk', {
-  value: function(chunkSize) {
-    var R = []
-    for (var i = 0; i < this.length; i += chunkSize)
-      R.push(this.slice(i, i + chunkSize))
-    return R
-  }
+	value: function(chunkSize) {
+		var R = []
+		for (var i = 0; i < this.length; i += chunkSize)
+			R.push(this.slice(i, i + chunkSize))
+		return R
+	}
 })
 
-$(function() {
-  $.post("img.csv", function(d) {
-    d = d.split("\n").shuffle()
-    d.each(function(v, k) {
-      if (k > 71) {return false}
-      try {
-        i = $("<img>", {crossOrigin: "anonymous", src: "http://www.matthewmorrone.com/space/"+v, class: "thumb"})[0]
-      }
-      catch(e) {
-        log(e, v)
-      }
-      $("#gallery").append(i)
-    })
-    $(".thumb:nth-last-child(-n+"+(72 % Math.floor(($(window).width() / 2) / 70))+")").remove();
-    $(".thumb").eq(Math.random(0, $("img").length)).click()
-  })
-})
-function quant(img) {
-  // options with defaults (not required)
-  var opts = {
-    colors: 256,             // desired palette size
-    method: 2,               // histogram method, 2: min-population threshold within subregions; 1: global top-population
-    boxSize: [64,64],        // subregion dims (if method = 2)
-    boxPxls: 2,              // min-population threshold (if method = 2)
-    initColors: 4096,        // # of top-occurring colors  to start with (if method = 1)
-    minHueCols: 0,           // # of colors per hue group to evaluate regardless of counts, to retain low-count hues
-    dithKern: null,          // dithering kernel name, see available kernels in docs below
-    dithDelta: 0,            // dithering threshhold (0-1) e.g: 0.05 will not dither colors with <= 5% difference
-    dithSerp: false,         // enable serpentine pattern dithering
-    palette: [],             // a predefined palette to start with in r,g,b tuple format: [[r,g,b],[r,g,b]...]
-    reIndex: false,          // affects predefined palettes only. if true, allows compacting of sparsed palette once target palette size is reached. also enables palette sorting.
-    useCache: true,          // enables caching for perf usually, but can reduce perf in some cases, like pre-def palettes
-    cacheFreq: 10,           // min color occurance count needed to qualify for caching
-    colorDist: "euclidean",  // method used to determine color distance, can also be "manhattan"
-  };
-
-  var q = new RgbQuant(opts);
-
-  q.sample(img)
-  var pal = q.palette()
-  var out = q.reduce(img)
-  log(q, pal, out)
+var hog = {
+	extractHOG: extractHOG,
+	extractHistograms: extractHistograms,
+	extractHOGFromHistograms: extractHOGFromHistograms
 }
-$(document).on("click", ".thumb", function() {
-  $(".swatch").css("background-image", "url("+$(this).attr("src")+")")
-              .css("background-color", "transparent")
-              .css("background-size", "cover")
-              .css("background-position", "center")
-
-  var img = new Image()
-  img.crossOrigin = "anonymous"
-  img.src = $(this).attr("src")
-  img.width = 220
-  img.height = 220
-  var canvas = document.getElementById('canvas')
-  var ctx = Canvas(canvas)
-
-
-
-  img.onload = function(e) {
-    ctx.drawImage(img, 0, 0, img.width, img.height)
-
-    var domi = dominant(canvas)
-    var aver = average(canvas)
-    $("#desc").html("<span style='color: {0};'>{0}</span> <span style='color: {1};'>{1}</span>".format(domi, aver))
-    $("body").backgroundColor(aver)
-
-    // quant(this)
-
-    var colorThief = new ColorThief()
-    var dom = $.Color(colorThief.getColor(img)).toHexString()
-    var col = colorThief.getPalette(img, 8).map(x => $.Color(x).toHexString())
-    log(dom, col)
-
-    ctx.fillStyle(dom).fillRect(0, 0, img.width, img.height/2)
-        .fillStyle(col[0]).fillRect(0, img.height/2, img.width/4, img.height/4)
-        .fillStyle(col[1]).fillRect(img.width/4, img.height/2, img.width/4, img.height/4)
-        .fillStyle(col[2]).fillRect(img.width/2, img.height/2, img.width/4, img.height/4)
-        .fillStyle(col[3]).fillRect(3*img.width/4, img.height/2, img.width/4, img.height/4)
-  }
-
-
-
-
-
-  // canvas1.addEventListener('mouseenter', function() {$(this).addClass("invert")})
-  // canvas1.addEventListener('mouseleave', function() {$(this).removeClass("invert")})
-  // canvas2.addEventListener('mouseenter', function() {$(this).addClass("invert")})
-  // canvas2.addEventListener('mouseleave', function() {$(this).removeClass("invert")})
+for (var func in processing) {
+	hog[func] = processing[func];
+}
+$.color = $.Color
+$.color.fn.contrastColor = function() {
+		var r = this._rgba[0], g = this._rgba[1], b = this._rgba[2];
+		return (((r*299)+(g*587)+(b*144))/1000) >= 131.5 ? "black" : "white";
+};
+$(function() {
+	$.post("img.csv", function(d) {
+		d = d.split("\n").shuffle()
+		d.each(function(v, k) {
+			if (k > 71) {return false}
+			try {
+				i = $("<img>", {crossOrigin: "anonymous", src: "http://www.matthewmorrone.com/space/"+v, class: "thumb", visited: false})[0]
+			}
+			catch(e) {
+				log(e, v)
+			}
+			$("#gallery").append(i)
+		})
+		$(".thumb:nth-last-child(-n+"+(72 % Math.floor(($(window).width() / 2) / 70))+")").remove();
+		$(".thumb[visited='false']").eq(Math.random(0, $(".thumb[visited='false']").length)).click()
+	})
 })
+var net = new brain.NeuralNetwork()
+var data = []
+var options = {
+	errorThresh: 0.005,  // error threshold to reach
+	iterations: 20000,   // maximum training iterations
+	log: true,           // console.log() progress periodically
+	logPeriod: 10,       // number of iterations between logging
+	learningRate: 0.3    // learning rate
+}
+var minpop = 10
+var product
+var colorThief = new ColorThief()
+var canvas = document.getElementById('canvas')
+var trained = false
+$(document).on("click", ".swatch", function() {
+	var dom = [colorThief.getColor(canvas).map(x => x/255)]
+	dom = dom.map(function(x) {return {r: x[0], g: x[1], b: x[2]}})[0]
+	var col = colorThief.getPalette(canvas, 18).map(x => x.map(y => y/255))
+	col = col.map(function(x) {return {r: x[0], g: x[1], b: x[2]}})
+	var input = {}
+	col.each(function(v, k) {
+		input["r"+k] = v.r
+		input["g"+k] = v.g
+		input["b"+k] = v.b
+	})
+	var color
+	if (!trained) {
+		color = this.getAttribute("color")
+		data.push({
+			input: input,
+			output: {black : color == 'black' ? 1 : 0, white: color == 'white' ? 1 : 0}
+		})
+	}
+	else {
+		var output = net.run(input)
+		color = output.black > .5 ? 'black' : 'white'
+		$(".swatch").css("color", color)
+		log(output, color)
+	}
+	$(".thumb[visited='false']").eq(Math.random(0, $(".thumb[visited='false']").length)).click()
 
+})
+$(document).on("click", "#train", function(e) {
+	product = net.train(data, options)
+	trained = true
+	log(data.length, product, trained)
+})
+$(document).on("click", ".thumb", function() {
+	$(this).attr("visited", true)
+	$(".swatch").css("background-image", "url("+$(this).attr("src")+")")
+	var img = new Image()
+	img.crossOrigin = "anonymous"
+	img.src = $(this).attr("src")
+	img.width = 220
+	img.height = 220
+	canvas = document.getElementById('canvas')
+	ctx = Canvas(canvas)
+	function* grid() {
+		yield [				0,				 0,		img.width,		img.height/2]
+
+		yield [				0,	4*img.height/8,		img.width/4,	img.height/4]
+		yield [	1*img.width/4,	4*img.height/8,		img.width/4,	img.height/4]
+		yield [	1*img.width/2,	4*img.height/8,		img.width/4,	img.height/4]
+		yield [	3*img.width/4,	4*img.height/8,		img.width/4,	img.height/4]
+		yield [				0,	6*img.height/8,		img.width/4,	img.height/4]
+		yield [	1*img.width/4,	6*img.height/8,		img.width/4,	img.height/4]
+		yield [	1*img.width/2,	6*img.height/8,		img.width/4,	img.height/4]
+		yield [	3*img.width/4,	6*img.height/8,		img.width/4,	img.height/4]
+
+		yield [				0,	7*img.height/8,		img.width/8,	img.height/8]
+		yield [	1*img.width/8,	7*img.height/8,		img.width/8,	img.height/8]
+		yield [	1*img.width/4,	7*img.height/8,		img.width/8,	img.height/8]
+		yield [	3*img.width/8,	7*img.height/8,		img.width/8,	img.height/8]
+		yield [	1*img.width/2,	7*img.height/8,		img.width/8,	img.height/8]
+		yield [	5*img.width/8,	7*img.height/8,		img.width/8,	img.height/8]
+		yield [	3*img.width/4,	7*img.height/8,		img.width/8,	img.height/8]
+		yield [	7*img.width/8,	7*img.height/8,		img.width/8,	img.height/8]
+		yield null
+	}
+	img.onload = function(e) {
+		ctx.drawImage(img, 0, 0, img.width, img.height)
+		var domi = dominant(canvas)
+		var aver = average(canvas)
+		$("#desc").html("<span style='color: {0};'>{0}</span> <span style='color: {1};'>{1}</span>".format(domi, aver))
+		$("body").backgroundColor(aver)
+
+		// quant(this)
+		// all(this)
+		// hogwart(canvas)
+
+		var i = 1, d, value, done, blocks = grid()
+		var dom = $.color(colorThief.getColor(img)).toHexString()
+		var col = colorThief.getPalette(img, 18).map(x => $.color(x).toHexString())
+		ctx.fillStyle(dom).fillRect(...blocks.next().value)
+		while(!done) {
+			var {value, done} = blocks.next()
+			if (!done && col[i]) {
+				ctx.fillStyle(col[i]).fillRect(...value)
+				i++
+			}
+		}
+	}
+})
+function hogwart(canvas) {
+	var options = {
+		cellSize: 4,	// length of cell in px
+		blockSize: 2,	// length of block in number of cells
+		blockStride: 1, // number of cells to slide block window by (block overlap)
+		bins: 6,		// bins per histogram
+		norm: 'L2'		// block normalization method
+	}
+	var descriptor = hog.extractHOG(canvas, options)
+	// var intensities = hog.intensities(canvas)
+	// var gradients = hog.gradients(canvas)
+	// var vectors = hog.gradientVectors(canvas)
+	// hog.drawGreyscale(canvas)
+	// hog.drawGradient(canvas, 'x')
+	// hog.drawGradient(canvas, 'y')
+	// hog.drawMagnitude(canvas)
+	return descriptor
+}
 </script>
 </head>
 <body>
-<div id="desc">brain.js demo - train a neural network to recognize color contrast</div>
+<!-- <div id="desc">brain.js demo - train a neural network to recognize color contrast</div> -->
 <div id="container">
-
-
-  <div class="section" id="training-box">
-  <div class="section-header"> Which one can you read more easily? </div>
-    <div class="swatch-box">
-    <div id="black-swatch" class="swatch" onclick="//trainer.pickSwatch('black')">
-
-      <table>
-      <tr><td><span class="fa fa-bell"></span></td><td><span class="fa fa-bluetooth"></span></td><td><span class="fa fa-heart"></span></td></tr>
-      <tr><td><span class="fa fa-anchor"></span></td><td><span class="fa fa-ra"></span></td><td><span class="fa fa-heart"></span></td></tr>
-      <tr><td><span class="fa fa-delicious"></span></td><td><span class="fa fa-chrome"></span></td><td><span class="fa fa-random"></span></td></tr>
-      </table>
-    </div>
-    </div>
-    <canvas id="canvas" height=220 width=220></canvas>
-
-    <div class="swatch-box">
-    <div id="white-swatch" class="swatch" onclick="//trainer.pickSwatch('white')">
-    <table>
-      <tr><td><span class="fa fa-bell"></span></td><td><span class="fa fa-bluetooth"></span></td><td><span class="fa fa-heart"></span></td></tr>
-      <tr><td><span class="fa fa-anchor"></span></td><td><span class="fa fa-ra"></span></td><td><span class="fa fa-heart"></span></td></tr>
-      <tr><td><span class="fa fa-delicious"></span></td><td><span class="fa fa-chrome"></span></td><td><span class="fa fa-random"></span></td></tr>
-    </table>
-    </div>
-
-    </div>
-  <!-- <canvas id="canvas2" height=220 width=220></canvas> -->
-
-
-  <!-- <div id="training-buttons"> <span class="pass-button button" onclick="trainer.changeColor()" title="skip">&rarr;</span> </div> -->
-  <div id="test-box">
-    <div id="test-button" onclick="trainer.trainNetwork()" class="button">train neural network</div>
-    <div id="subtitle"> You can train the network at any point, but the more color selections you give it, the better. </div>
-  </div>
-  </div>
-  <div id="progress-box">
-  <div id="training-message"> training network... </div>
-  <div id="progress-bar">
-    <div id="progress-completed"> </div>
-  </div>
-  </div>
-  <div class="section" id="testing-box">
-  <div id="swatches">
-    <div id="nn-swatch-box" class="swatch-box">
-    <div id="nn-swatch" class="swatch" onclick="tester.viewCode('nn')" title="view neural network code">
-      <div class="swatch-text">your neural network</div>
-    </div>
-    <div class="view-code" onclick="tester.viewCode('nn')">code
-      <div class="view-code-arrow">&#x25B6</div>
-    </div>
-    </div>
-    <div id="wcag-swatch-box" class="swatch-box">
-    <div id="wcag-swatch" class="swatch" onclick="tester.viewCode('wcag')" title="view luminosity code">
-      <div class="swatch-text">luminosity algorithm</div>
-    </div>
-    <div class="view-code" onclick="tester.viewCode('wcag')">code
-      <div class="view-code-arrow">&#x25B6</div>
-    </div>
-    </div>
-    <div id="yiq-swatch-box" class="swatch-box">
-    <div id="yiq-swatch" class="swatch" onclick="tester.viewCode('yiq')" title="view yiq code">
-      <div class="swatch-text">YIQ formula</div>
-    </div>
-    <div class="view-code" onclick="tester.viewCode('yiq')">code
-      <div class="view-code-arrow">&#x25B6</div>
-    </div>
-    </div>
-  </div>
-  <div id="training-buttons"> <span class="pass-button button" onclick="tester.testRandom()" title="next color">&rarr</span> </div>
-  </div>
-  <div id="code-box"> <pre id="code"></pre> </div>
-  <div id="gallery"></div>
+	<div class="section" id="training-box">
+		<div class="swatch-box">
+		<div id="black-swatch" class="swatch" color="black" onclick="//trainer.pickSwatch('black')">
+			<table>
+				<tr><td><span class="fa fa-bell"></span></td><td><span class="fa fa-bluetooth"></span></td><td><span class="fa fa-heart"></span></td></tr>
+				<tr><td><span class="fa fa-anchor"></span></td><td><span class="fa fa-ra"></span></td><td><span class="fa fa-heart"></span></td></tr>
+				<tr><td><span class="fa fa-delicious"></span></td><td><span class="fa fa-chrome"></span></td><td><span class="fa fa-random"></span></td></tr>
+			</table>
+		</div>
+		</div>
+		<canvas id="canvas" height=220 width=220></canvas>
+		<div class="swatch-box">
+		<div id="white-swatch" class="swatch" color="white" onclick="//trainer.pickSwatch('white')">
+			<table>
+				<tr><td><span class="fa fa-bell"></span></td><td><span class="fa fa-bluetooth"></span></td><td><span class="fa fa-heart"></span></td></tr>
+				<tr><td><span class="fa fa-anchor"></span></td><td><span class="fa fa-ra"></span></td><td><span class="fa fa-heart"></span></td></tr>
+				<tr><td><span class="fa fa-delicious"></span></td><td><span class="fa fa-chrome"></span></td><td><span class="fa fa-random"></span></td></tr>
+			</table>
+		</div>
+	</div>
+	<!-- <canvas id="canvas2" height=220 width=220></canvas> -->
+	<div id="training-buttons">
+		<!-- <span class="pass-button button" onclick="trainer.changeColor()" title="skip">&rarr;</span> -->
+		<button id="train">Train</button>
+	</div>
+	<div id="test-box">
+		<div id="test-button" onclick="trainer.trainNetwork()" class="button">train neural network</div>
+		<div id="subtitle"> You can train the network at any point, but the more color selections you give it, the better. </div>
+	</div>
+	</div>
+	<div id="progress-box">
+	<div id="training-message"> training network... </div>
+	<div id="progress-bar">
+		<div id="progress-completed"> </div>
+	</div>
+	</div>
+	<div class="section" id="testing-box">
+	<div id="swatches">
+		<div id="nn-swatch-box" class="swatch-box">
+		<div id="nn-swatch" class="swatch" onclick="tester.viewCode('nn')" title="view neural network code">
+			<div class="swatch-text">your neural network</div>
+		</div>
+		<div class="view-code" onclick="tester.viewCode('nn')">code
+			<div class="view-code-arrow">&#x25B6</div>
+		</div>
+		</div>
+		<div id="wcag-swatch-box" class="swatch-box">
+		<div id="wcag-swatch" class="swatch" onclick="tester.viewCode('wcag')" title="view luminosity code">
+			<div class="swatch-text">luminosity algorithm</div>
+		</div>
+		<div class="view-code" onclick="tester.viewCode('wcag')">code
+			<div class="view-code-arrow">&#x25B6</div>
+		</div>
+		</div>
+		<div id="yiq-swatch-box" class="swatch-box">
+		<div id="yiq-swatch" class="swatch" onclick="tester.viewCode('yiq')" title="view yiq code">
+			<div class="swatch-text">YIQ formula</div>
+		</div>
+		<div class="view-code" onclick="tester.viewCode('yiq')">code
+			<div class="view-code-arrow">&#x25B6</div>
+		</div>
+		</div>
+	</div>
+	<div id="training-buttons"> <span class="pass-button button" onclick="tester.testRandom()" title="next color">&rarr</span> </div>
+	</div>
+	<div id="code-box"> <pre id="code"></pre> </div>
+	<div id="gallery"></div>
 </div>
 </body>
 

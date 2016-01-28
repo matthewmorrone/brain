@@ -54,7 +54,7 @@ var trainer = {
     $("#progress-box").show();
 
     if(window.Worker) {
-      var worker = new Worker("training-worker.js");
+      var worker = new Worker("js/training-worker.js");
       worker.onmessage = this.onMessage;
       worker.onerror = this.onError;
       worker.postMessage(JSON.stringify(this.data));

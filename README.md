@@ -10,3 +10,6 @@ https://github.com/jseidelin/pixastic
 http://erlangarticles.com/p/sightmachine/simplecv-js
 https://github.com/sightmachine/simplecv-js
 http://mbostock.github.io/protovis/ex/nbody.html
+
+
+todo: color inputs should be weighted by frequency
