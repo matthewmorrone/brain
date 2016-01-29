@@ -25,6 +25,11 @@
 <script src="color/norms.js"></script>
 <script src="color/hog.js"></script>
 
+<script src='js/distance.js'></script>
+<script src='js/hcluster.js'></script>
+<script src='js/kmeans.js'></script>
+<script src='js/clusterfck.js'></script>
+
 <style>
 .choice {
 	border: 3px solid darkred;
@@ -33,32 +38,11 @@
 </style>
 
 <title>brain.js demo: Train a neural network to recognize color contrast</title>
-
+<script type='text/javascript' src='js/utils.js'></script>
 <script>
-var log = console.log.bind(console)
-var body = document.body, i
-Object.defineProperty(Array.prototype, 'chunk', {
-	value: function(chunkSize) {
-		var R = []
-		for (var i = 0; i < this.length; i += chunkSize)
-			R.push(this.slice(i, i + chunkSize))
-		return R
-	}
-})
 
-var hog = {
-	extractHOG: extractHOG,
-	extractHistograms: extractHistograms,
-	extractHOGFromHistograms: extractHOGFromHistograms
-}
-for (var func in processing) {
-	hog[func] = processing[func];
-}
-$.color = $.Color
-$.color.fn.contrastColor = function() {
-		var r = this._rgba[0], g = this._rgba[1], b = this._rgba[2];
-		return (((r*299)+(g*587)+(b*144))/1000) >= 131.5 ? "black" : "white";
-};
+
+
 $(function() {
 	$.post("img.csv", function(d) {
 		d = d.split("\n").shuffle()
@@ -76,32 +60,19 @@ $(function() {
 		$(".thumb[visited='false']").eq(Math.random(0, $(".thumb[visited='false']").length)).click()
 	})
 })
-var net = new brain.NeuralNetwork()
-var data = []
-var options = {
-	errorThresh: 0.005,  // error threshold to reach
-	iterations: 20000,   // maximum training iterations
-	log: true,           // console.log() progress periodically
-	logPeriod: 10,       // number of iterations between logging
-	learningRate: 0.3    // learning rate
-}
-var minpop = 10
-var product
-var colorThief = new ColorThief()
-var canvas = document.getElementById('canvas')
-var trained = false
+var input = {}, color, output, clstr, colors = [], dom, col
+
 $(document).on("click", ".swatch", function() {
-	var dom = [colorThief.getColor(canvas).map(x => x/255)]
+	dom = [colorThief.getColor(canvas).map(x => x/255)]
+	col = colorThief.getPalette(canvas, 18).map(x => x.map(y => y/255))
 	dom = dom.map(function(x) {return {r: x[0], g: x[1], b: x[2]}})[0]
-	var col = colorThief.getPalette(canvas, 18).map(x => x.map(y => y/255))
 	col = col.map(function(x) {return {r: x[0], g: x[1], b: x[2]}})
-	var input = {}
 	col.each(function(v, k) {
 		input["r"+k] = v.r
 		input["g"+k] = v.g
 		input["b"+k] = v.b
+		colors.push([v.r, v.g, v.b])
 	})
-	var color
 	if (!trained) {
 		color = this.getAttribute("color")
 		data.push({
@@ -110,10 +81,12 @@ $(document).on("click", ".swatch", function() {
 		})
 	}
 	else {
-		var output = net.run(input)
+		output = net.run(input)
 		color = output.black > .5 ? 'black' : 'white'
 		$(".swatch").css("color", color)
 		log(output, color)
+
+
 	}
 	$(".thumb[visited='false']").eq(Math.random(0, $(".thumb[visited='false']").length)).click()
 
@@ -122,6 +95,9 @@ $(document).on("click", "#train", function(e) {
 	product = net.train(data, options)
 	trained = true
 	log(data.length, product, trained)
+	// clstr = cluster(colors)
+
+	// log(clstr([0, 0, 225]))
 })
 $(document).on("click", ".thumb", function() {
 	$(this).attr("visited", true)
@@ -133,28 +109,7 @@ $(document).on("click", ".thumb", function() {
 	img.height = 220
 	canvas = document.getElementById('canvas')
 	ctx = Canvas(canvas)
-	function* grid() {
-		yield [				0,				 0,		img.width,		img.height/2]
 
-		yield [				0,	4*img.height/8,		img.width/4,	img.height/4]
-		yield [	1*img.width/4,	4*img.height/8,		img.width/4,	img.height/4]
-		yield [	1*img.width/2,	4*img.height/8,		img.width/4,	img.height/4]
-		yield [	3*img.width/4,	4*img.height/8,		img.width/4,	img.height/4]
-		yield [				0,	6*img.height/8,		img.width/4,	img.height/4]
-		yield [	1*img.width/4,	6*img.height/8,		img.width/4,	img.height/4]
-		yield [	1*img.width/2,	6*img.height/8,		img.width/4,	img.height/4]
-		yield [	3*img.width/4,	6*img.height/8,		img.width/4,	img.height/4]
-
-		yield [				0,	7*img.height/8,		img.width/8,	img.height/8]
-		yield [	1*img.width/8,	7*img.height/8,		img.width/8,	img.height/8]
-		yield [	1*img.width/4,	7*img.height/8,		img.width/8,	img.height/8]
-		yield [	3*img.width/8,	7*img.height/8,		img.width/8,	img.height/8]
-		yield [	1*img.width/2,	7*img.height/8,		img.width/8,	img.height/8]
-		yield [	5*img.width/8,	7*img.height/8,		img.width/8,	img.height/8]
-		yield [	3*img.width/4,	7*img.height/8,		img.width/8,	img.height/8]
-		yield [	7*img.width/8,	7*img.height/8,		img.width/8,	img.height/8]
-		yield null
-	}
 	img.onload = function(e) {
 		ctx.drawImage(img, 0, 0, img.width, img.height)
 		var domi = dominant(canvas)
@@ -162,11 +117,9 @@ $(document).on("click", ".thumb", function() {
 		$("#desc").html("<span style='color: {0};'>{0}</span> <span style='color: {1};'>{1}</span>".format(domi, aver))
 		$("body").backgroundColor(aver)
 
-		// quant(this)
-		// all(this)
-		// hogwart(canvas)
 
-		var i = 1, d, value, done, blocks = grid()
+
+		var i = 1, d, value, done, blocks = grid(this)
 		var dom = $.color(colorThief.getColor(img)).toHexString()
 		var col = colorThief.getPalette(img, 18).map(x => $.color(x).toHexString())
 		ctx.fillStyle(dom).fillRect(...blocks.next().value)
@@ -179,28 +132,10 @@ $(document).on("click", ".thumb", function() {
 		}
 	}
 })
-function hogwart(canvas) {
-	var options = {
-		cellSize: 4,	// length of cell in px
-		blockSize: 2,	// length of block in number of cells
-		blockStride: 1, // number of cells to slide block window by (block overlap)
-		bins: 6,		// bins per histogram
-		norm: 'L2'		// block normalization method
-	}
-	var descriptor = hog.extractHOG(canvas, options)
-	// var intensities = hog.intensities(canvas)
-	// var gradients = hog.gradients(canvas)
-	// var vectors = hog.gradientVectors(canvas)
-	// hog.drawGreyscale(canvas)
-	// hog.drawGradient(canvas, 'x')
-	// hog.drawGradient(canvas, 'y')
-	// hog.drawMagnitude(canvas)
-	return descriptor
-}
+
 </script>
 </head>
 <body>
-<!-- <div id="desc">brain.js demo - train a neural network to recognize color contrast</div> -->
 <div id="container">
 	<div class="section" id="training-box">
 		<div class="swatch-box">
